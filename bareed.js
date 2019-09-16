@@ -43,11 +43,17 @@ class Point {
  **********************************************************/
 class Wallet {
   // implement Wallet!
-  constructor(money = 0) {}
+  constructor(money = 0) {
+    this.money = money;
+  }
 
-  credit = amount => {};
+  credit = amount => {
+    this.money += amount;
+  };
 
-  debit = amount => {};
+  debit = amount => {
+    this.money -= amount;
+  };
 }
 
 /**********************************************************
@@ -63,6 +69,15 @@ class Wallet {
  **********************************************************/
 class Person {
   // implement Person!
+  constructor(name, x, y) {
+    this.name = name;
+    this.location = new Point(x, y);
+    this.wallet = new Wallet(0);
+  }
+
+  moveTo = point => {
+    this.location = point;
+  };
 }
 
 /**********************************************************
@@ -80,8 +95,19 @@ class Person {
  *
  * new vendor = new Vendor(name, x, y);
  **********************************************************/
-class Vendor {
+class Vendor extends Person {
   // implement Vendor!
+  constructor(name, x, y) {
+    super(name, x, y);
+    this.range = 5;
+    this.price = 1;
+  }
+
+  sellTo = function(customer, numberOfIceCreams) {
+    this.moveTo(customer.location);
+    this.wallet.credit(numberOfIceCreams * this.price);
+    customer.wallet.debit(numberOfIceCreams * this.price);
+  };
 }
 
 /**********************************************************
@@ -100,14 +126,39 @@ class Vendor {
  *
  * new customer = new Customer(name, x, y);
  **********************************************************/
-class Customer {
+class Customer extends Person {
   // implement Customer!
+  constructor(name, x, y) {
+    super(name, x, y);
+    this.wallet.money = 10;
+  }
+
+  _isInRange = vendor => {
+    let r = this.location.distanceTo(vendor.location);
+    if (r <= vendor.range) return true;
+    return false;
+  };
+  _haveEnoughMoney = (vendor, numberOfIceCreams) => {
+    if (numberOfIceCreams * vendor.price <= this.wallet.money) return true;
+    return false;
+  };
+  requestIceCream = (vendor, numberOfIceCreams) => {
+    if (
+      this._isInRange(vendor) &&
+      this._haveEnoughMoney(vendor, numberOfIceCreams)
+    ) {
+      vendor.sellTo(this, numberOfIceCreams);
+    }
+  };
 }
 
-export { Point, Wallet, Person, Customer, Vendor };
+module.exports = { Point, Wallet, Person, Customer, Vendor };
 
 /***********************************************************
  * If you want examples of how to use the
  * these classes and how to test your code manually,
  * check out the README.md file
  ***********************************************************/
+
+const c = new Customer("N", 1, 2);
+console.log(c);
